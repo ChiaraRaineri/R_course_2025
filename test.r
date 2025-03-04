@@ -90,6 +90,20 @@ a <- area.triangolo(6, 8)  # devono essere in sequenza come li ho dichiarati nel
 
 # [04] - Packages ---------------------------------------------------------
 
+DescTools::Desc(iris$Sepal.Length)   # Richiama specifiche funzioni all'interno del pacchetto (in questo caso Desc)
+
+library("DescTools")
+library("tidyverse")  # tidyverse è un insieme di packages (include ggplot2, dplyr e altri)
+
+packageVersion("DescTools")          # Versione del package
+
+"package:ggplo2" %in% search()       # Ci dice se l'ho già caricato nell'ambiente (in questo caso no = FALSE)
+"package:DescTools" %in% search()
+
+
+# Per fare uno script nuovo: ctrl +shift + n
+
+
 
 
 

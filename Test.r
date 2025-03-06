@@ -105,6 +105,137 @@ packageVersion("DescTools")          # Versione del package
 
 
 
+# 06/03/25
+
+# [05] - Logicals --------------------------------------------------------
+
+estate <- FALSE
+primavera <-TRUE
+
+class(primavera)
+
+
+if (estate) print("E' vero") else print("Non è vero")   # if(estate)=T è sottinteso
+if (!estate) print("E' vero") else print("Non è vero")  # Con il ! davanti è la negazione if(NOT estate)=T
+
+if (is.character("35")) ("ok") else ("no")
+
+
+rm(estate, primavera)
+
+
+
+# [06] - Numbers ----------------------------------------------------------
+
+n <- 32
+class(n)
+typeof(n)
+
+i <- 32L   # la L per farlo diventare un numero intero
+typeof(i)
+
+r <- 26.67
+class(r)
+typeof(r)
+
+# arrotondamento
+round(2.4636)     # arrotonda per difetto
+round(2.4636, 2)  # si può decidere il numero di decimali
+ceiling(2.4363)   # arrotonda per eccesso
+
+# conversioni
+as.character(2.555)
+
+format(2.555, decimal.mark = ",")  # si può formattare la stringa
+
+formatC(x = 123, digits = 0, width = 6, flag = "0", mode = "integer")  # deriva dal linguaggio C
+
+formatC(1, width = 2, flag = "0") # lo 0 davanti serve per mettere ad esempio i mesi in ordine numerico 
+
+
+d1 <- as.numeric("123.3")
+class(d1)
+d1 * 3
+
+
+
+# [07] - Characters -------------------------------------------------------
+
+coltura <- "mais"
+class(coltura)
+typeof(coltura)
+
+n <- 3
+
+stringa <- paste(formatC(n, width = 2, flag = "0"), coltura, sep = " - ")  # paste concatena più stringe (anche con un separatore)
+# estrarre i caratteri
+substr(stringa, start = 1, stop = 2)               # estraggo i valori dal primo carattere al secondo (compresi)
+substr(stringa, start = 0, stop = 1)               # R inizia a contare da 1 (non come python che inizia da 0)
+substr(stringa, start = 6, stop = nchar(stringa))  # nchar arriva fino alla fine della stringa
+
+# concatenare stringhe
+n    <- 3
+anno <- 2025
+mese <- "Marzo"
+
+paste(formatC(n, width = 2, flag = "0"), mese, anno, sep = " - ")
+
+
+
+# [08] - Dates ------------------------------------------------------------
+
+# %Y maiuscolo è l'anno esteso, %y minuscolo sono le ultime 2 cifre
+# formato ISO %Y-%m-%d
+
+oggi <- Sys.Date()  # è la data di oggi in formato ISO
+oggi
+class(oggi)
+
+ora <- Sys.time()   # data, ora, minuti, secondi e time zone (del sistema, Central Europe Time)
+ora                 # Per scambiarsi dati è meglio usare UTC
+class(ora)
+
+
+# convertire stringhe in date
+start.date <- "07-04-2020"
+class(start.date)
+
+start.date <- as.Date("07-04-2020", "%d-%m-%Y", tz = "CET")
+class(start.date)
+
+end.date <- as.Date("10-04-2020", "%d-%m-%Y", tz = "CET")
+class(end.date)
+
+
+# calcolare la differenza tra data di inizio e di fine
+differenza <- end.date - start.date
+differenza   # così risponde con una stringa (non utile per fare dei calcoli)
+attributes(differenza)
+
+as.integer(differenza)  # per avere come risultato un numero
+
+end.date <- end.date + 3
+end.date                       # di default dà il formato ISO
+format(end.date, "%d-%m-%Y")
+
+format(end.date, "%Y")
+format(end.date, "%W")  # numero progressivo delle settimane
+
+
+ISOdate(year = 2025, month = 3, day = 1, hour = 15, min = 32, sec = 20, tz = "CET")  # possiamo costruire noi la data
+
+
+start.time <- Sys.time()
+end.time   <- ISOdate(year = 2025, month = 1, day = 18, hour = 14, min = 20, sec = 45, tz = "CET")
+past.time  <- as.POSIXct(x = "2025-01-07 09:13:27", "%Y-%m-%d %H:%M:%S", tz = "CET")
+past.time
+
+attributes(as.POSIXlt(x = "2025-01-07 09:13:27", "%Y-%m-%d %H:%M:%S", tz = "CET"))
+
+
+
+
+
 
 
 

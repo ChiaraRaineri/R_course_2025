@@ -225,21 +225,159 @@ format(end.date, "%W")  # numero progressivo delle settimane
 ISOdate(year = 2025, month = 3, day = 1, hour = 15, min = 32, sec = 20, tz = "CET")  # possiamo costruire noi la data
 
 
-start.time <- Sys.time()
-end.time   <- ISOdate(year = 2025, month = 1, day = 18, hour = 14, min = 20, sec = 45, tz = "CET")
 past.time  <- as.POSIXct(x = "2025-01-07 09:13:27", "%Y-%m-%d %H:%M:%S", tz = "CET")
 past.time
-
 attributes(as.POSIXlt(x = "2025-01-07 09:13:27", "%Y-%m-%d %H:%M:%S", tz = "CET"))
 
 
 
+# differenza tra date
+start.time <- Sys.time()
+end.time   <- ISOdate(year = 2025, month = 1, day = 18, hour = 14, min = 20, sec = 45, tz = "CET")
+
+difftime(time1 = start.time, time2 = end.time, tz = "CET", units = "day")
+difftime(time1 = start.time, time2 = end.time, tz = "CET", units = "hours")
+
+
+# lubridate
+"package:lubridate" %in% search()
 
 
 
+# [09] - Vectors ----------------------------------------------------------
+
+vc.num <- c(1, 2, 8, 5)  # c = concatena
+vc.colture <- c("pomodoro", "patata", "lattuga", "carota", "cipolla")
+
+c(3:5, 10:16)  # sequenze di numeri
+c(1:10)        # primo e ultimo compresi
+
+
+# I vettori hanno una dimensione
+length(vc.num)
+1:length(vc.num)
+
+# La posizione di un elemento nel vettore è l'indice
+vc.colture[3]
+# oppure
+i <- 3
+vc.colture[i]
+
+# Per cercare un valore
+vc.colture[vc.colture == "patata"]
+vc.colture[vc.colture == "peperone"]
+which(vc.colture == "patata")  # trova la posizione
 
 
 
+# cat() concatena testo e numeri
+cat("\n", vc.num[3], "è minore di 5\n   Errore")
+
+
+
+colt <- "patata"
+if (colt %in% vc.colture) cat(colt, "è presente") else cat(colt, "non è presente")  # grazie a cat posso aggiungere alla stringa il valore della variabile
+
+
+#
+value <- 35
+if(!is.character(value)) value <- as.character(value)
+class(value)
+#
+
+
+
+# togliere tutte le variabili che iniziano con qualcosa (in questo caso con vc.)
+rm(list = ls(pattern = glob2rx("vc.*")))
+
+
+
+# Generare sequenze
+seq(from = 0, to = 100, by = 10)
+
+seq.Date(from = as.Date("2019-01-01, %Y-%m-%d"), 
+         to =   as.Date("2019-05-31, %Y-%m-%d"), 
+         by =   "15 day")
+
+seq.POSIXt(from = ISOdate(2025, 1, 27, hour = 10, tz ="CET"),
+           to   = ISOdate(2025, 1, 27, hour = 14, tz ="CET"),
+           by   = "hour")
+
+
+# Distribuzioni casuali
+set.seed(123)                                 # non conta il numero che ci metto dentro (però per fare più operazioni con le stesse caratteristiche devo usare lo stesso)
+runif(n =10, min = 10, max = 50)              # non sono ordinati
+
+set.seed(123)
+sample(x = 1:365, size = 10, replace = TRUE)  # replace=TRUE vuol dire che può prendere due volte lo stesso numero
+
+set.seed(123)
+vc.rnd <- runif(n = 100, min = 1, max = 400)
+hist(vc.rnd, breaks = seq(0, 400, 20))        # cambia ogni volta perché sono numeri random; seq significa da 0 a 400 con un passo di 20
+
+set.seed(123)
+vc.norm <- rnorm(n= 100, mean = 0, sd = 1)    # distribuzione normale (randomica)
+hist(vc.norm, breaks = seq(-4, +4, .1))
+
+
+sample(LETTERS[1:3], replace = T, size = 100)
+
+
+
+# [10] - Statistics -------------------------------------------------------
+
+# Statistiche descrittive
+
+res <- summary(rnorm(n= 100, mean = 10, sd = 2))
+res
+res[3]  # è il terzo indice (la mediana)
+
+# res è un vettore con le colonne nominate
+# per togliere il nome delle colonne (così posso usare direttamente i valori della statistica):
+unname(res)
+
+
+# per vedere i quantili
+vc.norm
+quantile(vc.norm, probs = c(.25, .5, .75), na.rm = T, names = T)  # na.rm toglie i NA, names dà il nome alle colonne
+
+
+# library("DescTools")
+Desc(vc.norm)           # dà le statistiche descrittive
+
+# frequenza (e percentuale e frequenza cumulata e cumulata percentuale)
+df <- Freq(vc.norm, breaks = seq(-3, +3, .5))   # è un data frame
+df$freq
+
+
+
+# [11] - Matrices ---------------------------------------------------------
+
+# Sono tabelle con lo stesso tipo di dati
+
+mx <- matrix(data = c(1:20), nrow = 5, ncol = 4)
+dim(mx)   # numero di righe e numero di colonne
+mx[2, 3]  # coordinate di riga e colonna
+mx[, 2]   # vettore della colonna 2
+mx[3, ]   # vettire della riga 3
+
+
+# Combinare vettori
+vc.dati.a <- c(1, 3, 4, 6)
+vc.dati.b <- c(11, 33, 55, 66)
+cbind(vc.dati.a, vc.dati.b)    # per colonna
+rbind(vc.dati.a, vc.dati.b)    # per riga
+
+
+
+# [12] - Data frames ------------------------------------------------------
+
+set.seed(123)
+df.test <- data.frame(id     = as.integer(seq(1, 5, 1)),
+                      day    = seq.Date(from = as.Date("2025-02-14", "%Y-%m-%d"), length.out = 5, by = "2 week"),
+                      classe = sample(LETTERS[1:3], size = 5, replace = T),
+                      valido = sample(c(T, F), size = 5, replace = T),
+                      peso   = rnorm(n = 5, mean = 10, sd = 2))
 
 
 

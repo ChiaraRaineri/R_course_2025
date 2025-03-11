@@ -381,4 +381,52 @@ df.test <- data.frame(id     = as.integer(seq(1, 5, 1)),
 
 
 
+# 11/03/25
+
+# Altro modo per scrivere il df di prima
+set.seed(123)
+
+id     <-  as.integer(seq(1, 5, 1))
+day    <-  seq.Date(from = as.Date("2025-02-14", "%Y-%m-%d"), length.out = 5, by = "2 week")
+classe <-  sample(LETTERS[1:3], size = 5, replace = T)
+valido <-  sample(c(T, F), size = 5, replace = T)
+peso   <-  rnorm(n = 5, mean = 10, sd = 2)
+
+tmp    <- as.data.frame(cbind(id, day, classe, valido, peso))  # il problema è che restituisce i numeri come caratteri (bisogna specificare il tipo)
+str(tmp)
+
+
+# Richiamare valori
+df.test$day 
+df.test[, c(2)]     # tutte le righe di una colonna (è un vettore)
+df.test[, c(2, 4)]  # quando sono più colonne è un data frame
+df.test[2, ]        # seleziona la colonna
+
+# usando dplyr
+select(df.test, day)               # restituisce un data frame
+pull(df.test, day)                 # restituisce un vettore (destruttura un oggetto complesso come un data frame)
+slice(df.test, 2)                  # restituisce una colonna
+df.test[df.test$classe == "C", ]   # restituisce un data frame con solo gli elementi con valore C nella colonna classe
+
+subset(df.test, peso >= 9, c(2,5))  # condizione sulle righe per selezionare le colonne
+
+# altro modo per scrivere subset usando il piping
+df.test %>%                # questo simbolo (pipes) indica che l'elemento prima viene passato a quello dopo
+  filter(peso >= 9) %>%    # questo risultato viene passato a quello dopo (sono azioni a cascata)
+  select(2, 5)
+
+# Per fare il simbolo del pipe: ctrl + shift + m
+# Facendo il pipe non c'è bisogno delle variabili temporanee
+
+
+
+str(iris)
+DescTools::Desc(iris$Sepal.Length)
+# filtrare per specie
+iris %>% 
+  filter(Species %in% c("setosa", "virginica")) %>%    # ho evitato di usare la sintassi and
+  select(Petal.Length, Sepal.Length)                   # seleziono i valori delle colonne indicate che corrispondono alle specie che ho scelto prima
+
+# dentro un pipe si può commentare una riga per provare più soluzioni
+
 

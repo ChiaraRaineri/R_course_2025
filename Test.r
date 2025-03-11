@@ -448,6 +448,6 @@ res[[1]][[3]]   # è il terzo elemento del primo oggetto
 # lt.test[[1]][[2, 3]]  # dal primo oggetto della lista prendi la colonna due, riga 3
 
 
-
+### nuovo modulo ###
 
 

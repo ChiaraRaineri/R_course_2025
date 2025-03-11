@@ -430,3 +430,24 @@ iris %>%
 # dentro un pipe si può commentare una riga per provare più soluzioni
 
 
+
+# [13] - Lists ------------------------------------------------------------
+
+res <- boxplot.stats(iris$Sepal.Length)  # res è una lista di 4 oggetti
+
+# install.packages("lobstr")
+lobstr::ref(res)   # dà una struttura alla lista di prima
+
+
+# riferirsi a un oggetto di una lista
+res[[1]]        # è il primo oggetto
+res[[1]][[3]]   # è il terzo elemento del primo oggetto
+
+
+# Per l'assegnazione uso list() mettendo dentro gli oggetti (es. df.test, vc.test). Per estrarre elementi dalla lista uso le due parentesi quadre
+# lt.test[[1]][[2, 3]]  # dal primo oggetto della lista prendi la colonna due, riga 3
+
+
+
+
+

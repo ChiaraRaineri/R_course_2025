@@ -451,3 +451,22 @@ res[[1]][[3]]   # è il terzo elemento del primo oggetto
 ### nuovo modulo ###
 
 
+
+# [14] - Working with files -----------------------------------------------
+
+# Per trovare i miei file (dentro a _data voglio i file che abbiano una certa sintassi). Non li carica, dice solo che ci sono
+list.files(path       = "_data",
+           pattern    = glob2rx("20*.csv"),   # questa è la sintassi comune ai file che voglio
+           all.files  = FALSE,
+           full.names = TRUE,                 # full.names fa vedere anche il nome del path
+           recursive  = FALSE)
+
+
+list.files(path       = "_data",
+           pattern    = glob2rx("DSA*.csv"),
+           all.files  = FALSE,
+           full.names = FALSE,
+           recursive  = FALSE)
+
+
+

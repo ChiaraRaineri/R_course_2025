@@ -301,6 +301,48 @@ load(file = "_data/meteo.RData")
 
 
 
+# >>> Pulizia dell'ambiente <<< -------------------------------------------
+
+rm(list = ls(pattern = glob2rx("vc.*")))
+rm(list = ls(pattern = glob2rx("meteo.*")))
+rm(chk, fname, tab.name, meteo)
+
+
+
+# >>> Salva CSV <<< -------------------------------------------------------
+
+if (!exists("meteo")) meteo <- readRDS("_data/meteo.rds")  # importa se l'ho cancellato dall'ambiente
+
+write.table(x = meteo, file = "_data/meteo_export.csv", sep = ";", dec = ",", row.names = F)  # non voglio i nomi di riga
+
+
+
+# >>> Salva XLSX <<< ------------------------------------------------------
+
+library("writexl")
+
+# voglio esportare solo 3 stazioni (creo una lista) (sono 3 data frame)
+lst.out <- list("DAS001" = meteo %>% filter(anno == 2020 & mese == 1 & id == c("DSA001")),
+                "DAS002" = meteo %>% filter(anno == 2020 & mese == 1 & id == c("DSA002")),
+                "DAS003" = meteo %>% filter(anno == 2020 & mese == 1 & id == c("DSA003")))
+
+# salva su disco
+write_xlsx(x = lst.out, path = file.path("_data", "meteo_export.xlsx"))
+
+
+# write_xlsx(x = meteo, path = file.path("_data", "meteo_export_all_years.xlsx"))
+
+
+# Altra libreria per salvare i file .xlsx e fare operazioni più complesse
+library("openxlsx")
+
+
+
+
+
+
+
+
 
 
 

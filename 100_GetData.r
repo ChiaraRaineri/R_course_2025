@@ -5,6 +5,8 @@ if(exists("vc.fname")) rm(vc.fname)   # per rimuovere variabili "sporche"
 if(exists("fname"))    rm(fname)
 
 
+# >>> Fornitore A <<< -----------------------------------------------------
+
 
 # [01] - Get vettore fname ------------------------------------------------
 

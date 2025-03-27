@@ -309,7 +309,7 @@ met <- met %>% select(- chk.tlw)
 
 
 
-## Mettiamo a punto una funzione ##
+# > Funzione < ------------------------------------------------------------
 
 #### parametri
 win         <- 8

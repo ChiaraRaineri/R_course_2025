@@ -370,6 +370,222 @@ met <- met %>%
 
 
 
+# . Join ------------------------------------------------------------------
+
+# 27/03/25
+
+
+## Dati esempio
+
+x <- tibble(key   = c(1, 2, 3),
+            val_x = c("x1", "x2", "x3"))
+
+y <- tibble(key   = c(1, 2, 4),
+            val_y = c("y1", "y2", "y4"))   # key è la colonna che hanno in comune
+
+
+# inner join (solo le chiavi in comune)
+inner_join(x, y, by = "key")  # il nome della colonna è sempre tra virgolette
+
+# left join (tutti gli attributi di x)
+left_join(x, y, by = "key")
+
+
+
+# > Caso d'uso < ----------------------------------------------------------
+
+
+library(readxl)
+
+up  <- read_xlsx(path = "_data/trattamenti.xlsx", sheet = "up")            # unità produttive
+tra <- read_xlsx(path = "_data/trattamenti.xlsx", sheet = "trattamenti")
+pro <- read_xlsx(path = "_data/trattamenti.xlsx", sheet = "prodotti")
+moa <- read_xlsx(path = "_data/trattamenti.xlsx", sheet = "moa")           # mode of action
+pa  <- read_xlsx(path = "_data/trattamenti.xlsx", sheet = "pa")            # principio attivo
+
+
+# Vogliamo fare una tabella con il nome del prodotto e quante volte è stato usato (per vedere il prodotto più usato)
+
+tra %>% 
+  select(prod_id) %>%                                                    # elenco di tutti i prodotti usati (anche ripetuti)
+  left_join(y = pro %>% select(prod_id, prod_desc), by = "prod_id") %>%  # per ogni codice prod_id ho gli attributi di quel prodotto (ha tenuto tutte le colonne dei trattamenti e ha attaccato gli attributi della tabella del prodotto che mi interessano)
+  group_by(prod_desc) %>% count() %>% ungroup() %>%                      # voglio contare quante volte sono stati usati i prodotti (usando i nomi comuni)
+  arrange(desc(n)) %>%                                                   # tabella ordinata in ordine decrescente per utilizzo
+  mutate(pct     = round(n / sum(n) * 100, 2),
+         pct.cum = cumsum(pct))
+
+
+# Tabella con i principi attivi più usati
+
+tmp <- tra %>% 
+  select(prod_id) %>% 
+  group_by(prod_id) %>% count() %>% ungroup() %>%  # per ogni codice prodotto mi dice quante volte l'ho usato
+  arrange(desc(n)) %>% 
+  left_join(pro %>% select(prod_id, pa1, pa2, pa3), by = "prod_id")
+
+
+# Smonto il data frame in 3 pezzi (i 3 principi attivi) uno sotto l'altro con lo stesso nome pa_id (chiave), quindi nella stessa colonna
+
+tmp %>% select(prod_id, n, pa1) %>% rename(pa_id = pa1) %>%               # rinomino pa1 con lo stesso nome della chiave che userò per mettere in relazione le due tabelle
+  bind_rows(tmp %>% select(prod_id, n, pa2) %>% rename(pa_id = pa2)) %>% 
+  bind_rows(tmp %>% select(prod_id, n, pa3) %>% rename(pa_id = pa3)) %>%  # però non tutti i prodotti hanno tutti e 3 i principi attivi (mi aspetto dei NA)
+  drop_na() %>%                                                           # tolgo i casi mancanti
+  group_by(pa_id) %>% summarise(n.uso = sum(n)) %>%                       # per ogni id di principio attivo somma quante volte l'ho usato
+  left_join(y = pa, by = "pa_id") %>%                                     # aggiungo il nome del principio attivo (la tabella pa ha la colonna pa_id)
+  arrange(desc(n.uso)) %>% 
+  select(pa_desc, n.uso) %>% 
+  mutate(pct     = round(n.uso / sum(n.uso) * 100, 2),
+         pct.cum = cumsum(pct)) %>% 
+  rename(`Principio attivo` = pa_desc,                                    # uso `` perché ho degli spazi e dei caratteri speciali
+         Applicazioni       = n.uso,
+         `%`                = pct,
+         `% cum`            = pct.cum) # %>% 
+   
+  # write.table("clipboard", sep = "\t", dec = ",", na = "", row.names = F, col.names = T)  # copio la tabella, posso andare su excel e fare incolla e ho la tabella (attenzione che non mette il nome a rowname, quindi i nomi delle colonne sono sfasati)
+
+
+# Distinct()
+
+tra %>% 
+  left_join(y = pro, by = "prod_id") %>%
+  distinct(prod_desc) %>%    # elenco dei prodotti unici (senza duplicati)
+  arrange(prod_desc) %>% 
+  pull()                     # pull trasforma il data frame in un vettore
+
+# oppure
+delme <- tra %>% 
+  left_join(y = pro, by = "prod_id")
+
+unique(delme$prod_desc)  # anche con unique si possono trovare i valori unici
+
+rm(delme)
+
+
+# Individuare i casi unici e il numero di osservazioni per ognuno
+
+tmp <- tra %>% 
+  left_join(y = pro %>% select(prod_id, prod_desc, pa1, pa2, pa3), by = "prod_id") %>% 
+  select(up_id, day, prod_desc, pa1, pa2, pa3, target, ha, dose_ha, udm_ha)
+
+tmp %>% distinct(prod_desc) %>% pull()
+
+tmp %>% 
+  select(prod_desc, pa1, pa2, pa3) %>% 
+  distinct(prod_desc, .keep_all = T)    # di fianco al nome del prodotto unico ho i suoi attributi (keep_all, mantieni le colonne)
+
+# distinct su colonne annidate (per avere elenchi unici gerarchici)
+tmp %>% 
+  distinct(up_id, prod_desc) # %>% view()  # per ogni id della up dimmi il prodotto unico
+
+
+
+# . Dati mancanti ---------------------------------------------------------
+
+
+# > Metodo A < ------------------------------------------------------------
+
+
+## Serie discontinua
+
+# voglio un data frame con il 5% di righe mancanti
+if(!exists("meteo")) meteo <- readRDS("_data/meteo.rds")
+
+set.seed(123)       
+vc.missing <- meteo %>%                        # seleziono il 5% di date casuali (mi serve per avere il data frame con missing data)
+  filter(anno == 2021 & id == "DSA001") %>% 
+  select(day.time) %>% 
+  sample_frac(size = .05, replace = F) %>%    
+  pull()
+
+# assegno valori mancanti al data frame
+df.source <- meteo %>% 
+  filter(anno == 2021 & id == "DSA001") %>%
+  select(day.time, t, r, rh, lw) %>%
+  mutate(day.time = ifelse(day.time %in% vc.missing, NA, day.time),
+         day.time = lubridate::as_datetime(day.time))
+
+# controlliamo se ci sono i dati mancanti
+df.source %>% filter(!complete.cases(.)) %>% nrow()
+
+# tolgo i casi mancanti dal data frame
+df.source <- df.source %>% filter(complete.cases(.))
+
+
+## Serie continua
+
+# voglio sapere dove sono i dati mancanti
+# genero un data frame con la sola colonna day.time
+df.ctrl <- tibble(day.time = seq.POSIXt(from = ISOdate(year = 2021, month = 1,  day = 1,  hour = 0,  min = 0, sec = 0, tz = "UTC"),
+                                        to   = ISOdate(year = 2021, month = 12, day = 31, hour = 23, min = 0, sec = 0, tz = "UTC"),
+                                        by   = "hour"))  # sequenza con tutte le ore
+
+
+# Abbiniamo le chiavi del dataframe completo con quello incompleto (ci aspettiamo dei NA)
+df.wrk <- left_join(x = df.ctrl, y = df.source, by = "day.time")
+
+df.wrk %>% filter(!complete.cases(.))  # estraggo le ore mancanti (ora conosco tutte le date e ore per cui non ho dati)
+
+rm(df.ctrl, df.source, df.wrk, vc.missing)
+
+
+
+# > Metodo B < ------------------------------------------------------------
+
+
+# devo crearmi io una chiave 
+
+# assegno un id
+df.source <- meteo %>%
+  filter(anno == 2021 & id == "DSA001") %>% 
+  select(3:6, 8:ncol(.)) %>% 
+  mutate(id = seq(1, nrow(.), 1)) %>% 
+  select(ncol(.), 1:(ncol(.)-1))
+
+# creo una serie discontinua
+set.seed(123)
+vc.missing <- sample_frac(df.source %>% select(id), size = .05, replace = F) %>% pull()   # campione frazionario (creo i dati mancanti)
+
+df.source <- df.source %>% 
+  mutate(id = ifelse(id %in% vc.missing, NA, id))   # metto degli NA dentro df.source
+
+df.source %>% filter(!complete.cases(.)) %>% nrow(.)
+
+
+# Creo una chiave univoca (key)
+df.source <- df.source %>% filter(complete.cases(.)) %>% 
+  select(-id) %>%                                                                # tolgo la colonna id
+  unite(col = "key", c("anno", "mese", "giorno", "ora"), sep = ".", remove = T)  # unisce e toglie le colonne che non mi interessano (anno, mese, etc)
+
+
+# Sequenza continua
+df.ctrl <- tibble(day.time = seq.POSIXt(from = ISOdate(year = 2021, month =  1, day =  1, hour =  0, min = 0, sec = 0, tz = "UTC"),
+                                        to   = ISOdate(year = 2021, month = 12, day = 31, hour = 23, min = 0, sec = 0, tz = "UTC"),
+                                        by = "hour")) %>% 
+  # costruiamo la chiave
+  mutate(anno   = year(day.time), 
+         mese   = month(day.time), 
+         giorno = day(day.time), 
+         ora    = hour(day.time)) %>% 
+  unite(col = "key", c("anno", "mese", "giorno", "ora"), sep = ".", remove = T) %>% 
+  select(-day.time)  # mi rimane solo la colonna key
+
+
+# Uniamo i data frame
+df.wrk <- df.ctrl %>% 
+  left_join(y = df.source, by = "key") %>% 
+  separate(col = key, into = c("anno", "mese", "giorno", "ora"), sep = "\\.", remove = T)  # ho rimosso la colonna key
+
+# guardo i dati mancanti
+df.wrk %>% filter(!complete.cases(.)) %>%  nrow(.) # %>% view() 
+
+
+
+
+
+
+
+
+
 
 
 

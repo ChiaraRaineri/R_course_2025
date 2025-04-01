@@ -580,6 +580,51 @@ df.wrk %>% filter(!complete.cases(.)) %>%  nrow(.) # %>% view()
 
 
 
+# . Pivoting --------------------------------------------------------------
+
+# pivot wider
+
+# temperatura media mensile per anno
+meteo %>% 
+  group_by(anno, mese) %>% summarise(t.med = round(mean(t), 2)) %>% ungroup() %>% 
+  mutate(mese = paste0("m", formatC(mese, width = 2, flag = "0"))) %>% 
+  pivot_wider(names_from = mese, names_sort = T, values_from = t.med, values_fill = 0)
+
+
+# aggregare una tabella con pioggia totale per giorno (per i mesi del 2021)
+meteo %>% 
+  filter(anno == 2021 & id == "DSA001") %>% 
+  group_by(mese, giorno) %>% summarise(mm = sum(r)) %>% ungroup() %>%   # mese, giorno perché sonp dati orari
+  mutate(mese = paste0("m", formatC(mese, width = 2, flag = 0)),        # così mi esce m01, m02 etc (per il nome del mese)
+         giorno = formatC(giorno, width = 2, flag = 0)) %>%             # anche qua voglio lo 0 davanti al numero
+  pivot_wider(names_from = mese, names_sort = T, values_from = mm, values_fill = 0) %>% 
+  rename(Giorno = giorno) %>% 
+  print(n = nrow(.))
+
+
+
+# 01/04/25
+
+# pivot longer
+
+tmp <- meteo %>% 
+  filter(anno == 2021 & id == "DSA001") %>% 
+  group_by(mese, giorno) %>% summarise(mm = sum(r)) %>% ungroup() %>%  
+  mutate(mese = paste0("m", formatC(mese, width = 2, flag = 0)),   
+         giorno = formatC(giorno, width = 2, flag = 0)) %>% 
+  pivot_wider(names_from = mese, names_sort = T, values_from = mm, values_fill = 0) %>% 
+  rename(Giorno = giorno)
+
+tmp %>% 
+  rename(giorno = Giorno) %>% 
+  pivot_longer(cols      = !giorno,  # prendi le colonne che non sono giorno, mettile nella colonna mese e assegna a ciascuna riga il valore t
+               names_to  = "mese", 
+               values_to = "r") %>% 
+  select(mese, giorno, r) %>% 
+  arrange(mese, giorno)
+
+
+
 
 
 

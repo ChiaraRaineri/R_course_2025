@@ -21,7 +21,7 @@ if(is.null(df.meteo)){
 # 02 - Function -----------------------------------------------------------
 
 
-fn.met.day <- function(df.meteo  = NULL,
+fn.met.day <- function(df.meteo  = meteo,
                        lbl.month = F,
                        fun.pipe  = F) {
   # Default
